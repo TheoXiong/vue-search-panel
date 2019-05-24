@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Vue Search Panel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+  <div id="app">
+    <button class="bt-show" @click="show">show</button> 
+    <div>value is: {{value}}</div>
+    <vue-search-panel ref="vSearchPanel" v-model="value" placeholder="Select to open" top="6px" width="500px"></vue-search-panel>
+  </div>
+  <script type="text/javascript" src="/index.min.js"></script>
+</body>
+</html>
