@@ -4,6 +4,7 @@
       class="vue-input"
       ref="input"
       v-bind="$attrs"
+      :placeholder="placeholder"
       @compositionstart="handleCompositionStart"
       @compositionend="handleCompositionEnd"
       @input="handleInput"
@@ -25,7 +26,8 @@ export default {
     }
   },
   props: {
-    value: [String, Number]
+    value: [String, Number],
+    placeholder: String
   },
   computed: {
     nativeInputValue() {
@@ -76,7 +78,7 @@ export default {
       if (!input) return
       if (input.value === this.nativeInputValue) return
       input.value = this.nativeInputValue
-    },
+    }
   }
 }
 </script>

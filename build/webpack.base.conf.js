@@ -1,14 +1,7 @@
-var path = require('path')
+const path = require('path')
 const { VueLoaderPlugin } = require('vue-loader')
 
 module.exports = {
-  entry: path.resolve(__dirname, './public/index.js'),
-  output: {
-    path: path.resolve(__dirname, './public'),
-    libraryTarget: 'umd',
-    umdNamedDefine: true,
-    filename: 'index.min.js'
-  },
   module: {
     rules: [
       {
@@ -17,7 +10,8 @@ module.exports = {
           'vue-style-loader',
           'css-loader'
         ],
-      },      {
+      },
+      {
         test: /\.vue$/,
         loader: 'vue-loader',
         options: {
@@ -34,7 +28,7 @@ module.exports = {
       },
       {
         test: /\.(png|jpg|gif|svg)$/,
-        loader: 'url-loader?limit=50000&name=assets/[name].[ext]'
+        loader: 'url-loader?limit=9000000&name=assets/[name].[ext]'
       },
       {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
@@ -48,26 +42,12 @@ module.exports = {
       }
     ]
   },
-  resolve: {
-    alias: {
-      'vue$': 'vue/dist/vue.esm.js',
-      '@': path.join(__dirname, './src')
-    },
-    extensions: ['*', '.js', '.vue', '.json']
-  },
-  devServer: {
-    historyApiFallback: true,
-    noInfo: true,
-    overlay: true
-  },
   performance: {
     hints: false
   },
   devtool: 'source-map',
-  externals: ['fs', 'url', 'process', 'child_process'],
-  plugins: [
-    new VueLoaderPlugin()
-  ]
+  resolve: {
+    extensions: ['*', '.js', '.vue', '.json', ".ts"]
+  },
+  plugins: [new VueLoaderPlugin()]
 }
-
-
