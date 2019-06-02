@@ -5,7 +5,7 @@
 const _count = Symbol('_count')
 const _threshold = Symbol('_threshold')
 
-class Lazy {
+class Debounce {
   constructor (threshold) {
     this[_count] = 0
     this[_threshold] = (typeof threshold === 'number' && threshold > 17) ? threshold : 100
@@ -16,7 +16,7 @@ class Lazy {
     }
     this[_count]++
   }
-  listening (cb = () => {}, ...args) {
+  do (cb = () => {}, ...args) {
     this.update()
     let currCnt = this[_count]
 
@@ -26,4 +26,4 @@ class Lazy {
   }
 }
 
-export default Lazy
+export default Debounce

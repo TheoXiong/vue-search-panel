@@ -19,6 +19,7 @@
           v-bind="$attrs"
           :value="value"
           :placeholder="placeholder"
+          :type="type"
           @input="onChange"
           @focus="onFocus"
           @blur="onBlur"
@@ -28,7 +29,7 @@
           ref="input"
         >
         </vue-input>
-        <div class="vue-panel">
+        <div class="vue-panel" :class="{ 'is-loading': loading }" ref="vuePanel">
           <div
             class="vue-panel-item"
             v-for="(item, index) in suggestions"
@@ -37,7 +38,7 @@
             @click="onSelect(item)"
           >
             <slot :item="item">
-              {{ item[valueKey] }}
+              <div class="vue-panel-item-value">{{ item[valueKey] }}</div>
             </slot>
           </div>
         </div>
@@ -48,8 +49,9 @@
 
 <script>
 import ClickOutside from '../utils/clickoutside.js'
-import Lazy from '../utils/debounce.js'
+import Debounce from '../utils/debounce.js'
 import VueInput from './VueInput.vue'
+import { setTimeout } from 'timers';
 
 export default {
   name: 'VueSearchPanel',
@@ -57,14 +59,14 @@ export default {
     return {
       isShow: false,
       clickOutside: false,
-      lazy: null,
+      debouncedGetData: null,
       suggestions: [],
-      highlightedIndex: -1
+      highlightedIndex: -1,
+      loading: false
     }
   },
   props: {
     valueKey: { type: String, default: 'value' },
-    placeholder: String,
     fetchSuggestions: Function,
     placement: {
       type: String,
@@ -78,6 +80,13 @@ export default {
     left: { type: String, default: '0px' },
     right: { type: String, default: '0px' },
     closeOnPressEscape: { type: Boolean, default: true },
+    closeOnSelect: { type: Boolean, default: true },
+    clearOnClose: { type: Boolean, default: true },
+    selectWhenUnmatched: { type: Boolean, default: false },
+    triggerOnFocus: { type: Boolean, default: true },
+    highlightFirstItem: { type: Boolean, default: true },
+    type: { type: String, default: 'text' },
+    placeholder: String,
     value: String
   },
   computed: {
@@ -96,15 +105,19 @@ export default {
       return style
     }
   },
+  watch: {
+  },
   mounted () {
     let selfEle = this.$refs.searchPanel
     this.clickOutside = new ClickOutside([selfEle], document, this.close)
     this.clickOutside.bind()
-    this.lazy = new Lazy(200)
+    this.debouncedGetData = new Debounce(200)
+    this.getData('')
   },
   beforeDestroy () {
     (this.clickOutside && this.clickOutside.unbind) ? this.clickOutside.unbind() : ''
-    this.lazy = null
+    this.debouncedGetData = null
+    this.clearSuggestions()
   },
   methods: {
     show () {
@@ -113,16 +126,35 @@ export default {
     close () {
       this.isShow = false
     },
+    clearInput () {
+      this.$nextTick(() => {
+        this.$emit('input', '')
+        this.debouncedGetData.do(this.getData, '')
+      })
+    },
+    clearSuggestions () {
+      this.$nextTick(() => {
+        this.suggestions = []
+        this.highlightedIndex = -1
+      })
+    },
     onEsc () {
       if (!this.closeOnPressEscape) return
       this.close()
     },
     onChange (value) {
       this.$emit('input', value)
-      this.lazy.listening(this.getData, value)
+      if (!this.triggerOnFocus && !value) {
+        this.suggestions = []
+        return
+      }
+      this.debouncedGetData.do(this.getData, value)
     },
     onFocus(event) {
       this.$emit('focus', event)
+      if (this.triggerOnFocus) {
+        this.debouncedGetData.do(this.getData, this.value)
+      }
     },
     onBlur(event) {
       this.$emit('blur', event)
@@ -130,19 +162,54 @@ export default {
     onSelect (item) {
       this.$emit('input', item[this.valueKey])
       this.$emit('select', item)
-      this.$nextTick(() => {
-        this.suggestions = []
-        this.highlightedIndex = -1
-      })
+      this.clearSuggestions()
+      this.closeOnSelect ? this.$nextTick(this.close) : ''
     },
-    onKeyEnter () {
-      
-    },
-    getData () {
-
+    onKeyEnter (e) {
+      if (this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
+        e.preventDefault()
+        this.onSelect(this.suggestions[this.highlightedIndex])
+      } else if (this.selectWhenUnmatched) {
+        this.$emit('select', { value: this.value })
+        this.clearSuggestions()
+      }
     },
     highlight (index) {
+      if (this.loading) { return }
+      if (index < 0) {
+        this.highlightedIndex = -1
+        return
+      }
+      if (index >= this.suggestions.length) {
+        index = this.suggestions.length - 1
+      }
 
+      const panel = this.$refs.vuePanel
+      const items = panel.querySelectorAll('.vue-panel-item')
+      
+      let highlightItem = items[index]
+      let scrollTop = panel.scrollTop
+      let offsetTop = highlightItem.offsetTop
+
+      if (offsetTop + highlightItem.scrollHeight > (scrollTop + panel.clientHeight)) {
+        panel.scrollTop += highlightItem.scrollHeight
+      }
+      if (offsetTop < scrollTop) {
+        panel.scrollTop -= highlightItem.scrollHeight
+      }
+      this.highlightedIndex = index
+    },
+    getData (query) {
+      this.loading = true
+      this.fetchSuggestions(query, (suggestions) => {
+        this.loading = false
+        if (Array.isArray(suggestions)) {
+          this.suggestions = suggestions
+          this.highlightedIndex = this.highlightFirstItem ? 0 : -1;
+        } else {
+          console.error('[ VueSearchPanel ] The suggestions must be an array.')
+        }
+      })
     },
     afterEnter () {
       this.$emit('opened')
@@ -152,6 +219,9 @@ export default {
     },
     afterLeave () {
       this.$emit('closed')
+      if (this.clearOnClose) {
+        this.clearInput()
+      }
     }
   },
   components: { VueInput }
@@ -180,18 +250,34 @@ export default {
   box-sizing: border-box;
   position: absolute;
   top: 40px;
-  bottom: 0;
+  bottom: 0px;
   left: 0;
   right: 0;
   overflow-x: hidden;
   overflow-y: auto;
 }
+.vue-panel-item{
+  cursor: pointer;
+}
 .vue-panel-item.highlighted,
 .vue-panel-item:hover{
   background-color: #F5F7FA
 }
+.vue-panel.is-loading .vue-panel-item.highlighted,
+.vue-panel.is-loading .vue-panel-item:hover{
+  background-color: #ffffff;
+}
 
-
+.vue-panel-item-value{
+  margin: 0;
+  padding: 8px 16px;
+  color:#606266;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
 
 
 

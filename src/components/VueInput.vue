@@ -5,6 +5,7 @@
       ref="input"
       v-bind="$attrs"
       :placeholder="placeholder"
+      :type="type"
       @compositionstart="handleCompositionStart"
       @compositionend="handleCompositionEnd"
       @input="handleInput"
@@ -27,15 +28,16 @@ export default {
   },
   props: {
     value: [String, Number],
-    placeholder: String
+    placeholder: String,
+    type: String
   },
   computed: {
-    nativeInputValue() {
+    nativeInputValue () {
       return this.value === null || this.value === undefined ? '' : String(this.value)
     }
   },
   watch: {
-    nativeInputValue() {
+    nativeInputValue () {
       this.setNativeInputValue()
     }
   },
@@ -116,12 +118,12 @@ export default {
   border-color: #575F96;
 }
 
-/* .vue-input::placeholder{
+.vue-input::placeholder{
   color: #d0d5e0;
 }
 .vue-input::-ms-clear {
   display: none;
   width: 0;
   height: 0;
-} */
+}
 </style>

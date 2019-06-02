@@ -24,6 +24,7 @@
     "chalk": "^2.4.1",
     "copy-webpack-plugin": "^4.5.1",
     "cross-env": "^5.1.6",
+    "crypto-random-string": "^3.0.0",
     "css-loader": "^0.28.11",
     "element-ui": "^2.8.2",
     "file-loader": "^1.1.11",
