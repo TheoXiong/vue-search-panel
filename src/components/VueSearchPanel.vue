@@ -1,39 +1,40 @@
 <template>
-  <div>
-    <transition :name="transitionName" @after-enter="afterEnter" @after-leave="afterLeave">
-      <div 
-        class="search-panel"
-        :style="style"
-        :class="{
-          'is-in-top': placement === 'top',
-          'is-in-bottom': placement === 'bottom',
-          'is-in-left': placement === 'left',
-          'is-in-right': placement === 'right',
-        }"
-        v-show="isShow"
-        @keyup.esc="onEsc"
-        tabindex="0"
-        ref="searchPanel"
+  <transition :name="transitionName" @after-enter="afterEnter" @after-leave="afterLeave">
+    <div
+      class="search-panel"
+      :class="{
+        'is-fixed': !!fixed,
+        'is-in-top': fixed && (placement === 'top'),
+        'is-in-bottom': fixed && (placement === 'bottom'),
+        'is-in-left': fixed && (placement === 'left'),
+        'is-in-right': fixed && (placement === 'right'),
+      }"
+      :style="style"
+      v-show="isShow"
+      @keyup.esc="onEsc"
+      tabindex="0"
+      ref="searchPanel"
+    >
+      <vue-input
+        v-bind="$attrs"
+        :value="value"
+        :placeholder="placeholder"
+        :type="type"
+        @input="onChange"
+        @focus="onFocus"
+        @blur="onBlur"
+        @keydown.up.native.prevent="highlight(highlightedIndex - 1)"
+        @keydown.down.native.prevent="highlight(highlightedIndex + 1)"
+        @keydown.enter.native="onKeyEnter"
+        ref="input"
       >
-        <vue-input 
-          v-bind="$attrs"
-          :value="value"
-          :placeholder="placeholder"
-          :type="type"
-          @input="onChange"
-          @focus="onFocus"
-          @blur="onBlur"
-          @keydown.up.native.prevent="highlight(highlightedIndex - 1)"
-          @keydown.down.native.prevent="highlight(highlightedIndex + 1)"
-          @keydown.enter.native="onKeyEnter"
-          ref="input"
-        >
-        </vue-input>
-        <div class="vue-panel" :class="{ 'is-loading': loading }" ref="vuePanel">
+      </vue-input>
+      <div class="vue-panel" :class="{ 'is-loading': loading }" ref="vuePanel">
+        <transition-group name="toggle-item">
           <div
             class="vue-panel-item"
             v-for="(item, index) in suggestions"
-            :key="index"
+            :key="item.key || index"
             :class="{'highlighted': highlightedIndex === index}"
             @click="onSelect(item)"
           >
@@ -41,21 +42,20 @@
               <div class="vue-panel-item-value">{{ item[valueKey] }}</div>
             </slot>
           </div>
-        </div>
+        </transition-group>
       </div>
-    </transition>
-  </div>
+    </div>
+  </transition>
 </template>
 
 <script>
 import ClickOutside from '../utils/clickoutside.js'
 import Debounce from '../utils/debounce.js'
 import VueInput from './VueInput.vue'
-import { setTimeout } from 'timers';
 
 export default {
   name: 'VueSearchPanel',
-  data() {
+  data () {
     return {
       isShow: false,
       clickOutside: false,
@@ -66,6 +66,7 @@ export default {
     }
   },
   props: {
+    fixed: { type: Boolean, default: true },
     valueKey: { type: String, default: 'value' },
     fetchSuggestions: Function,
     placement: {
@@ -91,6 +92,7 @@ export default {
   },
   computed: {
     transitionName () {
+      if (!this.fixed) return ''
       const names = ['top-top', 'bottom-bottom', 'left-left', 'right-right']
       return names[['top', 'bottom', 'left', 'right'].indexOf(this.placement)]
     },
@@ -126,6 +128,11 @@ export default {
     close () {
       this.isShow = false
     },
+    focusInput () {
+      if (this.$refs && this.$refs.input && this.$refs.input.focus) {
+        this.$refs.input.focus()
+      }
+    },
     clearInput () {
       this.$nextTick(() => {
         this.$emit('input', '')
@@ -150,13 +157,13 @@ export default {
       }
       this.debouncedGetData.do(this.getData, value)
     },
-    onFocus(event) {
+    onFocus (event) {
       this.$emit('focus', event)
       if (this.triggerOnFocus) {
         this.debouncedGetData.do(this.getData, this.value)
       }
     },
-    onBlur(event) {
+    onBlur (event) {
       this.$emit('blur', event)
     },
     onSelect (item) {
@@ -186,7 +193,7 @@ export default {
 
       const panel = this.$refs.vuePanel
       const items = panel.querySelectorAll('.vue-panel-item')
-      
+
       let highlightItem = items[index]
       let scrollTop = panel.scrollTop
       let offsetTop = highlightItem.offsetTop
@@ -205,7 +212,7 @@ export default {
         this.loading = false
         if (Array.isArray(suggestions)) {
           this.suggestions = suggestions
-          this.highlightedIndex = this.highlightFirstItem ? 0 : -1;
+          this.highlightedIndex = this.highlightFirstItem ? 0 : -1
         } else {
           console.error('[ VueSearchPanel ] The suggestions must be an array.')
         }
@@ -213,9 +220,7 @@ export default {
     },
     afterEnter () {
       this.$emit('opened')
-      if (this.$refs && this.$refs.input && this.$refs.input.focus) {
-        this.$refs.input.focus()
-      }
+      this.focusInput()
     },
     afterLeave () {
       this.$emit('closed')
@@ -232,16 +237,20 @@ export default {
 .search-panel{
   margin: 0;
   padding: 0;
-  position: fixed;
+  position: relative;
   overflow: hidden;
   z-index: 9999;
   box-sizing: border-box;
   transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
-  width: 50%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
   background: #fff;
   height: 300px;
 }
+.is-fixed{
+  position: fixed !important;
+  width: 50%;
+}
+
 .search-panel:focus,
 .search-panel:hover{
   outline: none
@@ -255,6 +264,7 @@ export default {
   right: 0;
   overflow-x: hidden;
   overflow-y: auto;
+  /* overflow: hidden; */
 }
 .vue-panel-item{
   cursor: pointer;
@@ -278,9 +288,6 @@ export default {
   text-overflow: ellipsis;
   cursor: pointer;
 }
-
-
-
 
 .is-in-top{
   top: 0;
@@ -321,5 +328,22 @@ export default {
 .right-right-leave-to {
   opacity: 0;
   transform: translate(100%, -50%);
+}
+
+.toggle-item-enter-active,
+.toggle-item-leave-active {
+  opacity: 1;
+  transition: all 0.3s ease-in-out;
+}
+.toggle-item-enter {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+.toggle-item-leave-to {
+  opacity: 0;
+  transform: translateY(100%);
+}
+.toggle-item-move{
+  transition: transform 0.3s;
 }
 </style>

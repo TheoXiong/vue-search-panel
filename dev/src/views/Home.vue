@@ -1,53 +1,64 @@
 <template>
-  <div 
-    id="home" 
+  <div
+    id="home"
     ref="home"
-    @keyup.space="show" 
+    @keyup.space="show"
     tabindex="0"
   >
     <button @click="show">Show</button>
     <div>value: {{ value }}</div>
     <div>selected: {{ selected.value }}</div>
-    <vue-search-panel
-      v-model="value"
-      placeholder="Input your word"
-      width="560px"
-      height="400px"
-      placement="top"
-      top="10px"
-      :fetch-suggestions="querySearch"
-      @closed="onClosed"
-      @select="onSelect"
-      ref="searchPanel"
-    >
-      <div 
-        class="home-search-item flex-c" 
-        slot-scope="{ item }" 
-        @mouseenter="onMouseenter(item)" 
-        @mouseleave="onMouseleave(item)"
+    <div class="home-search">
+      <vue-search-panel
+        v-model="value"
+        placeholder="Input your word"
+        width="560px"
+        height="400px"
+        placement="top"
+        top="10px"
+        :fetch-suggestions="querySearch"
+        @closed="onClosed"
+        @select="onSelect"
+        ref="searchPanel"
       >
-        <span><i class="iconfont icontags"></i></span>
-        <div class="home-search-item-value">{{ item.value }}</div>
-        <div class="home-search-item-time flex-c-e">{{ item.time }}</div>
-        <span class="close-wrap">
-          <i v-show="item.isHover" class="iconfont iconclose" @click="deleteItem($event, item)"></i>
-        </span>
-      </div>
-    </vue-search-panel>
+        <div
+          class="home-search-item flex-c"
+          slot-scope="{ item }"
+          @mouseenter="onMouseenter(item)"
+          @mouseleave="onMouseleave(item)"
+        >
+          <span><i class="iconfont icontags"></i></span>
+          <div class="home-search-item-value">{{ item.value }}</div>
+          <div class="home-search-item-time flex-c-e">{{ item.time }}</div>
+          <div class="close-wrap">
+            <div class="close-inner flex-c-c" v-show="item.key === hoveredItem" @click="deleteItem($event, item)">
+              <i class="iconfont iconclose"></i>
+            </div>
+          </div>
+        </div>
+      </vue-search-panel>
+    </div>
   </div>
 </template>
 
 <script>
-import { parseTime } from '@/utils/util.js'
+import { parseTime, removeFromArray, isInArray } from '@/utils/util.js'
 const cryptoRandomString = require('crypto-random-string')
 
 export default {
   name: 'Home',
-  data() {
+  data () {
     return {
       value: '',
+      devData: [],
+      queryList: [],
       selected: { value: '' },
-      devData: []
+      hoveredItem: ''
+    }
+  },
+  watch: {
+    queryList (q) {
+      this.checkHovered()
     }
   },
   mounted () {
@@ -55,11 +66,12 @@ export default {
   },
   methods: {
     initData () {
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 24; i++) {
+        let value = cryptoRandomString({ length: 32 })
         this.devData.push({
-          value: cryptoRandomString({ length: 32 }),
+          value: value,
           time: parseTime(new Date(new Date().getTime() - Math.random() * 10000000)),
-          isHover: false
+          key: `${i}-${value}`
         })
       }
     },
@@ -67,13 +79,18 @@ export default {
       this.$refs.searchPanel.show()
     },
     onMouseenter (item) {
-      item.isHover = true
+      this.$nextTick(() => {
+        this.hoveredItem = item.key
+      })
     },
     onMouseleave (item) {
-      item.isHover = false
+      if (this.hoveredItem === item.key) {
+        this.hoveredItem = ''
+      }
     },
     onClosed () {
       this.$refs.home.focus()
+      this.hoveredItem = ''
     },
     onSelect (item) {
       console.log('onSelect: ', item)
@@ -81,19 +98,24 @@ export default {
     },
     querySearch (query, cb) {
       if (query) {
-        cb(this.devData.filter(item => {
+        this.queryList = this.devData.filter(item => {
           return item.value.toLowerCase().includes(query.toLowerCase())
-        }))
+        })
       } else {
-        cb(this.devData)
+        this.queryList = this.devData
       }
+      cb(this.queryList)
     },
     deleteItem (event, item) {
       event.stopPropagation()
-      let index = this.devData.findIndex(d => {
-        return d.value === item.value
-      })
-      index >= 0 ? this.devData.splice(index, 1) : ''
+      removeFromArray(this.queryList, 'key', item)
+      removeFromArray(this.devData, 'key', item)
+      this.$refs.searchPanel.focusInput()
+    },
+    checkHovered () {
+      if (this.hoveredItem && !isInArray(this.queryList, 'key', { key: this.hoveredItem })) {
+        this.hoveredItem = ''
+      }
     }
   }
 }
@@ -113,9 +135,15 @@ export default {
   outline: none;
 }
 
+.home-search{
+  margin: 20px;
+  width: 600px;
+}
+
 .home-search-item{
   margin: 0;
-  padding: 8px 12px;
+  height: 32px;
+  padding: 0 12px;
 }
 .home-search-item-value{
   color: #606266;
@@ -147,6 +175,11 @@ export default {
 }
 
 .close-wrap{
-  width: 14px;
+  height: 100%;
+  width: 18px;
+}
+.close-inner{
+  height: 100%;
+  width: 100%;
 }
 </style>

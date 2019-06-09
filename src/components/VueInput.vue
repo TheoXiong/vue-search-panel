@@ -1,6 +1,6 @@
 <template>
   <div class="vue-input-wrap" @mouseenter="hovering = true" @mouseleave="hovering = false">
-    <input 
+    <input
       class="vue-input"
       ref="input"
       v-bind="$attrs"
@@ -19,7 +19,7 @@
 <script>
 export default {
   name: 'VueInput',
-  data() {
+  data () {
     return {
       isComposing: false,
       hovering: false,
@@ -48,34 +48,34 @@ export default {
     focus () {
       this.$refs.input.focus()
     },
-    blur() {
+    blur () {
       this.$refs.input.blur()
     },
-    handleCompositionStart() {
+    handleCompositionStart () {
       this.isComposing = true
     },
-    handleCompositionEnd(event) {
+    handleCompositionEnd (event) {
       this.isComposing = false
       this.handleInput(event)
     },
-    handleInput(event) {
+    handleInput (event) {
       if (this.isComposing) return
       if (event.target.value === this.nativeInputValue) return
       this.$emit('input', event.target.value)
       this.$nextTick(this.setNativeInputValue)
     },
-    handleFocus(event) {
-      this.focused = true;
+    handleFocus (event) {
+      this.focused = true
       this.$emit('focus', event)
     },
-    handleBlur(event) {
+    handleBlur (event) {
       this.focused = false
       this.$emit('blur', event)
     },
-    handleChange(event) {
+    handleChange (event) {
       this.$emit('change', event.target.value)
     },
-    setNativeInputValue() {
+    setNativeInputValue () {
       const input = this.$refs.input
       if (!input) return
       if (input.value === this.nativeInputValue) return
