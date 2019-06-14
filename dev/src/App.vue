@@ -28,9 +28,8 @@ body {
   margin: 0;
   padding: 0;
   font-size: 16px;
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+  font-family: Arial, sans-serif;
   color: #232321;
-  min-width: 1200px;
   background: #fff !important;
 }
 html,
@@ -38,8 +37,10 @@ body,
 #app{
   height: 100%;
   width: 100%;
-  overflow: hidden;
   box-sizing: border-box;
+}
+#app{
+  overflow: auto;
 }
 
 * {

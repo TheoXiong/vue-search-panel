@@ -1,5 +1,5 @@
 <template>
-  <div class="nav-menu flex-c-c" :class="{'is-not-overbanner': !overBanner}">
+  <div class="nav-menu flex-c-c">
     <div class="nav-menu-wrap flex-c-b">
       <div class="nav-log flex-c">
         <img :src="logoImg" class="nav-logo-img">
@@ -7,7 +7,7 @@
       </div>
       <div class="nav-content flex-c">
         <div class="nav-content-item"
-          v-for="item in value"
+          v-for="item in menus"
           :key="item.key"
           @click="onClick(item)"
         >
@@ -26,22 +26,18 @@ export default {
   data () {
     return {
       logoImg,
-      logoText: 'Vue Image Text'
-    }
-  },
-  props: {
-    value: {
-      type: Array,
-      default: () => []
-    },
-    overBanner: {
-      type: Boolean,
-      default: true
+      logoText: 'Vue Search Panel',
+      menus: [{
+        key: 'github',
+        name: 'GitHub',
+      }]
     }
   },
   methods: {
     onClick (item) {
-      this.$emit('click', item)
+      if (item.key === 'github') {
+        window.open('https://github.com/TheoXiong/vue-search-panel', '_blank')
+      }
     }
   }
 }
@@ -61,14 +57,14 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   -webkit-user-drag: none;
-}
-.is-not-overbanner{
-  background-color: rgba(68, 209, 209, 0.75);
+  background-color: #333333;
+  box-sizing: border-box;
+  padding: 0 20px;
 } 
 
 .nav-menu-wrap{
   height: 100%;
-  width: 1320px;
+  width: 1280px;
 }
 
 .nav-logo-img{
@@ -84,6 +80,7 @@ export default {
 .nav-content-item{
   margin: 0 12px;
   font-size: 14px;
+  letter-spacing: 1px;
   color: #fff;
   cursor: pointer;
 }

@@ -30,19 +30,21 @@
       >
       </vue-input>
       <div class="vue-panel" :class="{ 'is-loading': loading }" ref="vuePanel">
-        <transition-group name="toggle-item">
-          <div
-            class="vue-panel-item"
-            v-for="(item, index) in suggestions"
-            :key="item.key || index"
-            :class="{'highlighted': highlightedIndex === index}"
-            @click="onSelect(item)"
-          >
-            <slot :item="item">
-              <div class="vue-panel-item-value">{{ item[valueKey] }}</div>
-            </slot>
-          </div>
-        </transition-group>
+        <vuescroll>
+          <transition-group name="toggle-item">
+            <div
+              class="vue-panel-item"
+              v-for="(item, index) in suggestions"
+              :key="item.key || index"
+              :class="{'highlighted': highlightedIndex === index}"
+              @click="onSelect(item)"
+            >
+              <slot :item="item">
+                <div class="vue-panel-item-value">{{ item[valueKey] }}</div>
+              </slot>
+            </div>
+          </transition-group>
+        </vuescroll>
       </div>
     </div>
   </transition>
@@ -52,6 +54,7 @@
 import ClickOutside from '../utils/clickoutside.js'
 import Debounce from '../utils/debounce.js'
 import VueInput from './VueInput.vue'
+import vuescroll from 'vuescroll'
 
 export default {
   name: 'VueSearchPanel',
@@ -123,9 +126,11 @@ export default {
   },
   methods: {
     show () {
+      this.$emit('open')
       this.isShow = true
     },
     close () {
+      this.$emit('close')
       this.isShow = false
     },
     focusInput () {
@@ -229,7 +234,7 @@ export default {
       }
     }
   },
-  components: { VueInput }
+  components: { VueInput, vuescroll }
 }
 </script>
 
