@@ -164,3 +164,19 @@
     -ms-transform: translateY(100%);
     -o-transform: translateY(100%);
 }
+
+/* fade in, fade out */
+.fade-in-out-enter-active,
+.fade-in-out-leave-active {
+    transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+    opacity: 1;
+}
+.fade-in-out-enter {
+    opacity: 0;
+}
+.fade-in-out-leave-to {
+    opacity: 0;
+}

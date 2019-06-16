@@ -1,11 +1,26 @@
 <template>
-  <div class="vue-input-wrap" @mouseenter="hovering = true" @mouseleave="hovering = false">
+  <div
+    class="vue-input-wrap"
+    @mouseenter="hovering = true"
+    @mouseleave="hovering = false"
+    :style="{
+      backgroundColor: inputBackground
+    }"
+  >
     <input
       class="vue-input"
       ref="input"
       v-bind="$attrs"
       :placeholder="placeholder"
       :type="type"
+      :class="{
+        'placeholder-light': placeholderEffect === 'light',
+        'placeholder-dark': placeholderEffect === 'dark'
+      }"
+      :style="{
+        color: inputColor,
+        borderColor: borderColor
+      }"
       @compositionstart="handleCompositionStart"
       @compositionend="handleCompositionEnd"
       @input="handleInput"
@@ -28,12 +43,27 @@ export default {
   },
   props: {
     value: [String, Number],
+    type: String,
     placeholder: String,
-    type: String
+    placeholderEffect: { type: String, default: 'light' },
+    inputColor: { type: String, default: '#606266' },
+    inputBackground: { type: String, default: '#FFFFFF' },
+    inputBorderColor: { type: String, default: '#DCDFE6' },
+    inputBorderColorHovering: { type: String, default: '#B0B3BB' },
+    inputBorderColorFocused: { type: String, default: '#575F96' }
   },
   computed: {
     nativeInputValue () {
       return this.value === null || this.value === undefined ? '' : String(this.value)
+    },
+    borderColor () {
+      if (this.focused) {
+        return this.inputBorderColorFocused
+      } else if (this.hovering) {
+        return this.inputBorderColorHovering
+      } else {
+        return this.inputBorderColor
+      }
     }
   },
   watch: {
@@ -45,6 +75,13 @@ export default {
     this.setNativeInputValue()
   },
   methods: {
+    getInput () {
+      if (this.$refs && this.$refs.input) {
+        return this.$refs.input
+      } else {
+        return null
+      }
+    },
     focus () {
       this.$refs.input.focus()
     },
@@ -88,6 +125,7 @@ export default {
 <style scoped>
 .vue-input-wrap{
   box-sizing: border-box;
+  border-radius: 2px;
   margin: 6px;
   font-size: 12px;
   font-family: inherit;
@@ -97,9 +135,8 @@ export default {
   background-color: transparent;
   background-image: none;
   border-radius: 2px;
-  border: 1px solid #dcdfe6;
+  border: 1px solid;
   box-sizing: border-box;
-  color: #606266;
   display: inline-block;
   font-size: inherit;
   height: 28px;
@@ -109,21 +146,41 @@ export default {
   transition: border-color .2s ease;
   width: 100%;
 }
-.vue-input:hover{
-  border-color: #c0c4cc;
-}
-
-.vue-input:focus, .vue-input:active{
+.vue-input:hover,
+.vue-input:focus,
+.vue-input:active{
   outline: 0;
-  border-color: #575F96;
 }
 
-.vue-input::placeholder{
-  color: #d0d5e0;
-}
 .vue-input::-ms-clear {
   display: none;
   width: 0;
   height: 0;
+}
+
+.vue-input.placeholder-light::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+  color:#d0d5e0;
+}
+.vue-input.placeholder-light:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color:#d0d5e0;
+}
+.vue-input.placeholder-light::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color:#d0d5e0;
+}
+.vue-input.placeholder-light:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color:#d0d5e0;
+}
+
+.vue-input.placeholder-dark::-webkit-input-placeholder { /* WebKit, Blink, Edge */
+  color:#909399;
+}
+.vue-input.placeholder-dark:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+  color:#909399;
+}
+.vue-input.placeholder-dark::-moz-placeholder { /* Mozilla Firefox 19+ */
+  color:#909399;
+}
+.vue-input.placeholder-dark:-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color:#909399;
 }
 </style>

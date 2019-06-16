@@ -29,14 +29,23 @@
         ref="input"
       >
       </vue-input>
-      <div class="vue-panel" :class="{ 'is-loading': loading }" ref="vuePanel">
-        <vuescroll>
+      <div
+        class="vue-panel"
+        :class="{ 'is-loading': loading }"
+        @mouseleave="hoveredIndex = -1"
+        ref="vuePanel"
+      >
+        <vuescroll :ops="scrollBarOpts" ref="vuescroll">
           <transition-group name="toggle-item">
             <div
               class="vue-panel-item"
               v-for="(item, index) in suggestions"
               :key="item.key || index"
-              :class="{'highlighted': highlightedIndex === index}"
+              :style="{
+                backgroundColor: getBackgroundColor(index)
+              }"
+              @mouseenter="onMouseenter(index)"
+              @mouseleave="onMouseleave(index)"
               @click="onSelect(item)"
             >
               <slot :item="item">
@@ -65,7 +74,9 @@ export default {
       debouncedGetData: null,
       suggestions: [],
       highlightedIndex: -1,
-      loading: false
+      hoveredIndex: -1,
+      loading: false,
+      scrollBarOpts: { bar: {} }
     }
   },
   props: {
@@ -91,7 +102,14 @@ export default {
     highlightFirstItem: { type: Boolean, default: true },
     type: { type: String, default: 'text' },
     placeholder: String,
-    value: String
+    value: String,
+    scrollBarColor: { type: String, default: '#DFDFDF' },
+    scrollBarOpacity: { type: Number, default: 0.8 },
+    panelBackground: { type: String, default: '#FFFFFF' },
+    panelBorderRadius: { type: String, default: '0px' },
+    panelBoxShadow: { type: String, default: 'rgba(0, 0, 0, 0.3)' },
+    highlightedColor: { type: String, default: '#F5F7FA' },
+    hoveredColor: { type: String, default: '#C5C7CA' }
   },
   computed: {
     transitionName () {
@@ -107,10 +125,26 @@ export default {
       this.bottom ? style.marginBottom = this.bottom : ''
       this.left ? style.marginLeft = this.left : ''
       this.right ? style.marginRight = this.right : ''
+
+      this.panelBackground ? style.backgroundColor = this.panelBackground : ''
+      this.panelBorderRadius ? style.borderRadius = this.panelBorderRadius : ''
+      this.panelBoxShadow ? style.boxShadow = `0px 1px 3px ${this.panelBoxShadow}` : ''
       return style
     }
   },
   watch: {
+    scrollBarColor: {
+      handler (value) {
+        value ? this.scrollBarOpts.bar.background = value : ''
+      },
+      immediate: true
+    },
+    scrollBarOpacity: {
+      handler (value) {
+        value ? this.scrollBarOpts.bar.opacity = value : ''
+      },
+      immediate: true
+    }
   },
   mounted () {
     let selfEle = this.$refs.searchPanel
@@ -144,11 +178,29 @@ export default {
         this.debouncedGetData.do(this.getData, '')
       })
     },
+    getInputElement () {
+      if (this.$refs && this.$refs.input) {
+        return this.$refs.input.getInput()
+      } else {
+        return null
+      }
+    },
     clearSuggestions () {
       this.$nextTick(() => {
         this.suggestions = []
         this.highlightedIndex = -1
+        this.hoveredIndex = -1
       })
+    },
+    onMouseenter (index) {
+      this.$nextTick(() => {
+        this.hoveredIndex = index
+      })
+    },
+    onMouseleave (index) {
+      if (this.hoveredIndex === index) {
+        this.hoveredIndex = -1
+      }
     },
     onEsc () {
       if (!this.closeOnPressEscape) return
@@ -200,16 +252,33 @@ export default {
       const items = panel.querySelectorAll('.vue-panel-item')
 
       let highlightItem = items[index]
-      let scrollTop = panel.scrollTop
+      let scrollTop = this.getScrollTop()
       let offsetTop = highlightItem.offsetTop
 
       if (offsetTop + highlightItem.scrollHeight > (scrollTop + panel.clientHeight)) {
-        panel.scrollTop += highlightItem.scrollHeight
+        this.$refs.vuescroll.scrollBy({ dy: highlightItem.scrollHeight }, 50)
       }
       if (offsetTop < scrollTop) {
-        panel.scrollTop -= highlightItem.scrollHeight
+        this.$refs.vuescroll.scrollBy({ dy: -highlightItem.scrollHeight }, 50)
       }
       this.highlightedIndex = index
+    },
+    getScrollTop () {
+      if (!(this.$refs && this.$refs.vuescroll)) {
+        console.error(new Error('[ VueSearchPanel ] Invalid vuescroll.'))
+        return 0
+      }
+      if (typeof this.$refs.vuescroll.getPosition === 'function') {
+        let pos = this.$refs.vuescroll.getPosition()
+        if (pos && typeof pos.scrollTop === 'number') {
+          return pos.scrollTop
+        }
+      }
+      if (this.$refs.vuescroll.$el && this.$refs.vuescroll.$el.querySelector('.__panel')) {
+        return this.$refs.vuescroll.$el.querySelector('.__panel').scrollTop
+      }
+      console.error(new Error('[ VueSearchPanel ] Failed to get scrollTop.'))
+      return 0
     },
     getData (query) {
       this.loading = true
@@ -218,6 +287,7 @@ export default {
         if (Array.isArray(suggestions)) {
           this.suggestions = suggestions
           this.highlightedIndex = this.highlightFirstItem ? 0 : -1
+          this.hoveredIndex > suggestions.length ? this.hoveredIndex = -1 : ''
         } else {
           console.error('[ VueSearchPanel ] The suggestions must be an array.')
         }
@@ -231,6 +301,15 @@ export default {
       this.$emit('closed')
       if (this.clearOnClose) {
         this.clearInput()
+      }
+    },
+    getBackgroundColor (index) {
+      if (index === this.highlightedIndex) {
+        return this.highlightedColor
+      } else if (index === this.hoveredIndex) {
+        return this.hoveredColor
+      } else {
+        return 'transparent'
       }
     }
   },
@@ -247,8 +326,6 @@ export default {
   z-index: 9999;
   box-sizing: border-box;
   transition: transform 300ms ease-in-out, opacity 300ms ease-in-out;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-  background: #fff;
   height: 300px;
 }
 .is-fixed{
@@ -274,14 +351,14 @@ export default {
 .vue-panel-item{
   cursor: pointer;
 }
-.vue-panel-item.highlighted,
+/* .vue-panel-item.highlighted,
 .vue-panel-item:hover{
   background-color: #F5F7FA
-}
-.vue-panel.is-loading .vue-panel-item.highlighted,
+} */
+/* .vue-panel.is-loading .vue-panel-item.highlighted,
 .vue-panel.is-loading .vue-panel-item:hover{
   background-color: #ffffff;
-}
+} */
 
 .vue-panel-item-value{
   margin: 0;

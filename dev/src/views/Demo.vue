@@ -13,6 +13,17 @@
           height="400px"
           placement="top"
           top="200px"
+          :scrollBarColor="scrollBarColor"
+          :scrollBarOpacity="scrollBarOpacity"
+          inputColor="#ccc"
+          inputBackground="#555555"
+          inputBorderColor="#666"
+          inputBorderColorHovering="#999"
+          inputBorderColorFocused="#ccc"
+          placeholderEffect="dark"
+          panelBackground="#333333"
+          highlightedColor="#444444"
+          hoveredColor="#666666"
           :fetch-suggestions="querySearch"
           @opened="onOpened"
           @closed="onClosed"
@@ -37,10 +48,11 @@
         </vue-search-panel>
       </div>
       <div class="demo-tip"><span>{{ tip }}</span></div>
-      <transition name="left-left">
-        <div class="demo-control" v-show="isShow"></div>
+      <transition name="fade-in-out">
+        <div class="demo-control" v-show="isShow">
+        </div>
       </transition>
-      <transition name="right-right">
+      <transition name="fade-in-out">
         <div class="demo-result" v-show="isShow"></div>
       </transition>
     </div>
@@ -61,7 +73,9 @@ export default {
       selected: { value: '' },
       hoveredItem: '',
       tip: 'Press Shift+D to open search panel',
-      isShow: false
+      isShow: false,
+      scrollBarColor: '#909399',
+      scrollBarOpacity: 0.8
     }
   },
   watch: {
@@ -194,8 +208,6 @@ export default {
   border: 1px solid #e5e5e5;
   background-color: rgb(240, 242, 243);
 }
-
-
 
 .demo-search{
   width: 100%;

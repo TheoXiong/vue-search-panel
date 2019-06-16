@@ -1,6 +1,6 @@
 <template>
   <div id="home">
-    <nav-menu ></nav-menu>
+    <nav-menu></nav-menu>
     <demo ref="demo"></demo>
   </div>
 </template>
@@ -29,7 +29,7 @@ export default {
       }
     }
   },
-  components: { NavMenu, Demo }  
+  components: { NavMenu, Demo }
 }
 </script>
 
