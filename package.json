@@ -1,12 +1,13 @@
 {
   "name": "vue-search-panel",
-  "version": "1.0.0",
-  "description": "A vue component for searching",
+  "version": "1.0.1",
+  "description": "A vue component of searching panel",
   "main": "dist/index.min.js",
   "scripts": {
     "dev": "node_modules/.bin/webpack-dev-server --config ./build/webpack.dev.conf.js --open --hot",
-    "build:dev": "webpack -p --hide-modules --config ./build/webpack.dev.conf.js",
-    "build": "webpack -p --hide-modules --config ./build/webpack.prod.conf.js"
+    "build": "webpack -p --hide-modules --config ./build/webpack.prod.conf.js",
+    "build:server": "webpack -p --hide-modules --config ./build/webpack.server.conf.js",
+    "server": "node dev/server/server.js"
   },
   "author": "TheoXiong",
   "license": "MIT",
@@ -29,6 +30,7 @@
     "crypto-random-string": "^3.0.0",
     "css-loader": "^0.28.11",
     "element-ui": "^2.8.2",
+    "express": "^4.17.1",
     "file-loader": "^1.1.11",
     "html-webpack-plugin": "^3.2.0",
     "mini-css-extract-plugin": "0.4.0",
@@ -49,5 +51,18 @@
     "webpack-dev-server": "^3.1.4",
     "webpack-hot-middleware": "^2.22.2",
     "webpack-merge": "^4.1.3"
-  }
+  },
+  "keywords": [
+    "search",
+    "panel",
+    "vue"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheoXiong/vue-search-panel.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TheoXiong/vue-search-panel/issues"
+  },
+  "homepage": "https://github.com/TheoXiong/vue-search-panel#readme"
 }

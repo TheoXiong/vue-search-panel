@@ -9,7 +9,7 @@ module.exports = {
         use: [
           'vue-style-loader',
           'css-loader'
-        ],
+        ]
       },
       {
         test: /\.vue$/,
@@ -35,7 +35,7 @@ module.exports = {
         use: {
           loader: 'url-loader',
           query: {
-            limit: 20000,
+            limit: 200000,
             name: 'fonts/[name]--[folder].[ext]'
           }
         }
@@ -47,7 +47,7 @@ module.exports = {
   },
   devtool: 'source-map',
   resolve: {
-    extensions: ['*', '.js', '.vue', '.json', ".ts"]
+    extensions: ['*', '.js', '.vue', '.json', '.ts']
   },
   plugins: [new VueLoaderPlugin()]
 }

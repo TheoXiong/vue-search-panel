@@ -18,14 +18,20 @@ export default {
   mounted () {
     document.addEventListener('keydown', event => {
       if (event && event.keyCode === 68 && event.shiftKey) {
-        this.show()
+        this.show({ theme: 'dark' })
+      } else if (event && event.keyCode === 76 && event.shiftKey) {
+        this.show({ theme: 'light' })
+      } else if (event && event.keyCode === 67 && event.shiftKey) {
+        this.show({ theme: 'light', panel: 'command' })
+      } else if (event && event.keyCode === 82 && event.shiftKey) {
+        this.show({ theme: 'light', panel: 'recently' })
       }
     })
   },
   methods: {
-    show () {
+    show (info) {
       if (this.$refs && this.$refs.demo) {
-        this.$refs.demo.show()
+        this.$refs.demo.show(info)
       }
     }
   },

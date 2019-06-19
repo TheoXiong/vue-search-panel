@@ -18,8 +18,14 @@
       <vue-input
         v-bind="$attrs"
         :value="value"
-        :placeholder="placeholder"
         :type="type"
+        :placeholder="placeholder"
+        :placeholderEffect="placeholderEffect"
+        :inputColor="inputColor"
+        :inputBackground="inputBackground"
+        :inputBorderColor="inputBorderColor"
+        :inputBorderColorHovering="inputBorderColorHovering"
+        :inputBorderColorFocused="inputBorderColorFocused"
         @input="onChange"
         @focus="onFocus"
         @blur="onBlur"
@@ -36,23 +42,28 @@
         ref="vuePanel"
       >
         <vuescroll :ops="scrollBarOpts" ref="vuescroll">
-          <transition-group name="toggle-item">
-            <div
-              class="vue-panel-item"
-              v-for="(item, index) in suggestions"
-              :key="item.key || index"
-              :style="{
-                backgroundColor: getBackgroundColor(index)
-              }"
-              @mouseenter="onMouseenter(index)"
-              @mouseleave="onMouseleave(index)"
-              @click="onSelect(item)"
-            >
-              <slot :item="item">
-                <div class="vue-panel-item-value">{{ item[valueKey] }}</div>
-              </slot>
-            </div>
-          </transition-group>
+          <div
+            class="vue-panel-item"
+            v-for="(item, index) in suggestions"
+            :key="item.key || index"
+            :style="{
+              backgroundColor: getBackgroundColor(index)
+            }"
+            @mouseenter="onMouseenter(index)"
+            @mouseleave="onMouseleave(index)"
+            @click="onSelect(item)"
+          >
+            <slot :item="item">
+              <div
+                class="vue-panel-item-value"
+                :style="{
+                  color: valueColor
+                }"
+              >
+                {{ item[valueKey] }}
+              </div>
+            </slot>
+          </div>
         </vuescroll>
       </div>
     </div>
@@ -100,16 +111,23 @@ export default {
     selectWhenUnmatched: { type: Boolean, default: false },
     triggerOnFocus: { type: Boolean, default: true },
     highlightFirstItem: { type: Boolean, default: true },
-    type: { type: String, default: 'text' },
-    placeholder: String,
-    value: String,
+    valueColor: { type: String, default: '#606266' },
     scrollBarColor: { type: String, default: '#DFDFDF' },
     scrollBarOpacity: { type: Number, default: 0.8 },
     panelBackground: { type: String, default: '#FFFFFF' },
     panelBorderRadius: { type: String, default: '0px' },
     panelBoxShadow: { type: String, default: 'rgba(0, 0, 0, 0.3)' },
     highlightedColor: { type: String, default: '#F5F7FA' },
-    hoveredColor: { type: String, default: '#C5C7CA' }
+    hoveredColor: { type: String, default: '#C5C7CA' },
+    value: [String, Number],
+    type: { type: String, default: 'text' },
+    placeholder: String,
+    placeholderEffect: { type: String, default: 'light' },
+    inputColor: { type: String, default: '#606266' },
+    inputBackground: { type: String, default: '#FFFFFF' },
+    inputBorderColor: { type: String, default: '#DCDFE6' },
+    inputBorderColorHovering: { type: String, default: '#B0B3BB' },
+    inputBorderColorFocused: { type: String, default: '#575F96' }
   },
   computed: {
     transitionName () {
@@ -151,7 +169,7 @@ export default {
     this.clickOutside = new ClickOutside([selfEle], document, this.close)
     this.clickOutside.bind()
     this.debouncedGetData = new Debounce(200)
-    this.getData('')
+    this.getData(this.value)
   },
   beforeDestroy () {
     (this.clickOutside && this.clickOutside.unbind) ? this.clickOutside.unbind() : ''
@@ -160,6 +178,7 @@ export default {
   },
   methods: {
     show () {
+      this.getData(this.value)
       this.$emit('open')
       this.isShow = true
     },
@@ -175,7 +194,6 @@ export default {
     clearInput () {
       this.$nextTick(() => {
         this.$emit('input', '')
-        this.debouncedGetData.do(this.getData, '')
       })
     },
     getInputElement () {
@@ -301,6 +319,7 @@ export default {
       this.$emit('closed')
       if (this.clearOnClose) {
         this.clearInput()
+        this.clearSuggestions()
       }
     },
     getBackgroundColor (index) {
@@ -351,19 +370,10 @@ export default {
 .vue-panel-item{
   cursor: pointer;
 }
-/* .vue-panel-item.highlighted,
-.vue-panel-item:hover{
-  background-color: #F5F7FA
-} */
-/* .vue-panel.is-loading .vue-panel-item.highlighted,
-.vue-panel.is-loading .vue-panel-item:hover{
-  background-color: #ffffff;
-} */
 
 .vue-panel-item-value{
   margin: 0;
   padding: 8px 16px;
-  color:#606266;
   font-size: 14px;
   white-space: nowrap;
   overflow: hidden;
@@ -381,6 +391,7 @@ export default {
   opacity: 0;
   transform: translate(-50%, -100%);
 }
+
 .is-in-bottom{
   bottom: 0;
   left: 50%;
@@ -410,22 +421,5 @@ export default {
 .right-right-leave-to {
   opacity: 0;
   transform: translate(100%, -50%);
-}
-
-.toggle-item-enter-active,
-.toggle-item-leave-active {
-  opacity: 1;
-  transition: all 0.3s ease-in-out;
-}
-.toggle-item-enter {
-  opacity: 0;
-  transform: translateY(-100%);
-}
-.toggle-item-leave-to {
-  opacity: 0;
-  transform: translateY(100%);
-}
-.toggle-item-move{
-  transition: transform 0.3s;
 }
 </style>
