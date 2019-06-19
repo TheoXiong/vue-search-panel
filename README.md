@@ -6,6 +6,8 @@
 
 ## 演示
 
+线上模板： [https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/) 
+
 ### 默认UI
 ![demo](./light.png)
 
