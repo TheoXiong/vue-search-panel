@@ -159,16 +159,16 @@ export default {
 }
 
 .vue-input.placeholder-light::-webkit-input-placeholder { /* WebKit, Blink, Edge */
-  color:#d0d5e0;
+  color:#cacaca;
 }
 .vue-input.placeholder-light:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
-  color:#d0d5e0;
+  color:#cacaca;
 }
 .vue-input.placeholder-light::-moz-placeholder { /* Mozilla Firefox 19+ */
-  color:#d0d5e0;
+  color:#cacaca;
 }
 .vue-input.placeholder-light:-ms-input-placeholder { /* Internet Explorer 10-11 */
-  color:#d0d5e0;
+  color:#cacaca;
 }
 
 .vue-input.placeholder-dark::-webkit-input-placeholder { /* WebKit, Blink, Edge */

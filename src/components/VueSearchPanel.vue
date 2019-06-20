@@ -42,6 +42,7 @@
         ref="vuePanel"
       >
         <vuescroll :ops="scrollBarOpts" ref="vuescroll">
+          <slot name="upon-item"></slot>
           <div
             class="vue-panel-item"
             v-for="(item, index) in suggestions"
@@ -87,7 +88,13 @@ export default {
       highlightedIndex: -1,
       hoveredIndex: -1,
       loading: false,
-      scrollBarOpts: { bar: {} }
+      scrollBarOpts: {
+        scrollPanel: {
+          scrollingX: false,
+          scrollingY: true
+        },
+        bar: {}
+      }
     }
   },
   props: {
@@ -160,6 +167,12 @@ export default {
     scrollBarOpacity: {
       handler (value) {
         value ? this.scrollBarOpts.bar.opacity = value : ''
+      },
+      immediate: true
+    },
+    value: {
+      handler (v) {
+        this.$nextTick(this.focusInput)
       },
       immediate: true
     }
@@ -242,18 +255,25 @@ export default {
       this.$emit('blur', event)
     },
     onSelect (item) {
+      this.clearSuggestions()
       this.$emit('input', item[this.valueKey])
       this.$emit('select', item)
-      this.clearSuggestions()
-      this.closeOnSelect ? this.$nextTick(this.close) : ''
+      if (this.closeOnSelect) {
+        this.$nextTick(this.close)
+      } else {
+        this.$nextTick(() => {
+          this.debouncedGetData.do(this.getData, item[this.valueKey])
+        })
+      }
     },
     onKeyEnter (e) {
       if (this.highlightedIndex >= 0 && this.highlightedIndex < this.suggestions.length) {
         e.preventDefault()
         this.onSelect(this.suggestions[this.highlightedIndex])
       } else if (this.selectWhenUnmatched) {
-        this.$emit('select', { value: this.value })
-        this.clearSuggestions()
+        let selectedData = {}
+        selectedData[this.valueKey] = this.value
+        this.onSelect(selectedData)
       }
     },
     highlight (index) {
