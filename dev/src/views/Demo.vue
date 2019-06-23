@@ -5,11 +5,13 @@
       <div class="demo-search">
         <vue-search-panel
           v-model="value"
-          placeholder="Input your word"
           width="640px"
           height="400px"
           placement="top"
           top="180px"
+          :placeholder="placeholder"
+          :selectWhenUnmatched="true"
+          :closeOnSelect="closeOnSelect"
           :scrollBarColor="scrollBarColor"
           :inputColor="inputColor"
           :inputBackground="inputBackground"
@@ -26,23 +28,25 @@
           @select="onSelect"
           ref="searchPanel"
         >
-          <div
-            class="demo-search-item flex-c"
-            slot-scope="{ item }"
-            @mouseenter="onMouseenter(item)"
-            @mouseleave="onMouseleave(item)"
-          >
-            <span><i class="iconfont icontags"></i></span>
-            <div class="demo-search-item-value" :style="{ color: itemValueColor }">
-              {{ item.value }}
-            </div>
-            <div class="demo-search-item-time flex-c-e" :style="{ color: itemTimeColor }">
-              {{ item.time }}
-            </div>
-            <div class="close-wrap">
-              <div class="close-inner flex-c-c" v-show="item.key === hoveredItem" @click="deleteItem($event, item)">
-                <i class="iconfont iconclose" :style="{ color: iconcloseColor }"></i>
+          <div slot-scope="{ item }">
+            <div v-if="currPanel === 'help'">
+              <div class="panel-item-help flex-c-b">
+                <div class="help-item-wrap flex-c">
+                  <span class="help-value">{{ item.value }}</span>
+                  <span class="help-tip">{{ item.tip }}</span>
+                </div>
+                <span class="panel-shortcut">{{ item.shortcut }}</span>
               </div>
+            </div>
+            <div v-else-if="currPanel === 'unmatch'">
+              <div class="panel-item-unmatch flex-c">
+                <span class="unmatch-value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+          <div slot="upon-item">
+            <div class="panel-upon-item flex-c" v-if="!!isShowUponItem">
+              <span>{{ uponItemText }}</span>
             </div>
           </div>
         </vue-search-panel>
@@ -82,31 +86,24 @@
 </template>
 
 <script>
-import { parseTime, removeFromArray, isInArray } from '@/utils/util.js'
+import { parseTime } from '@/utils/util.js'
+import { panelSignMap, helpList, commandList } from '@/utils/config.js'
+import { takeFromCache, SEARCH_PATH, RECENTLY_PATH } from '@/utils/cache.js'
 import vuescroll from 'vuescroll'
 const cryptoRandomString = require('crypto-random-string')
-
-const commandList = [
-  { key: 'command1', value: 'Command 1' },
-  { key: 'command2', value: 'Command 2' },
-  { key: 'command3', value: 'Command 3' }
-]
-
-const recentlyList = [
-  { key: 'recently1', value: 'Recently 1' },
-  { key: 'recently2', value: 'Recently 2' },
-  { key: 'recently3', value: 'Recently 3' }
-]
 
 export default {
   name: 'Demo',
   data () {
     return {
       value: '',
+      currPanel: '',
+      closeOnSelect: true,
+      isShowUponItem: false,
+      uponItemText: '',
+      placeholder: '',
       devData: [],
-      queryList: [],
       selected: { value: '' },
-      hoveredItem: '',
       eventList: [],
       tip1: 'light color',
       tip2: 'dark color',
@@ -129,8 +126,14 @@ export default {
     }
   },
   watch: {
-    queryList (q) {
-      this.checkHovered()
+    currPanel (p) {
+      if (p === 'help') {
+        this.placeholder = 'Take one action from below'
+        this.closeOnSelect = false
+      } else {
+        this.placeholder = ''
+        this.closeOnSelect = true
+      }
     }
   },
   mounted () {
@@ -181,75 +184,110 @@ export default {
       }
     },
     show (info) {
-      if (info.panel === 'command') {
-        this.value = '>'
-      } else if (info.panel === 'recently') {
-        this.value = '#'
-      }
+      if (!(this.$refs && this.$refs.searchPanel)) return
+      this.value = panelSignMap[info.action] || ''
       this.adjustTheme(info.theme)
       this.$nextTick(() => {
         this.$refs.searchPanel.show()
         this.updateEvent(`[ open ] Has opened, theme is ${info.theme}`)
       })
     },
-    onMouseenter (item) {
-      this.$nextTick(() => {
-        this.hoveredItem = item.key
-      })
+    showUponItem (text) {
+      this.uponItemText = text || ''
+      this.isShowUponItem = true
     },
-    onMouseleave (item) {
-      if (this.hoveredItem === item.key) {
-        this.hoveredItem = ''
+    closeUponItem () {
+      this.uponItemText = ''
+      this.isShowUponItem = false
+    },
+    querySearch (inputData, cb) {
+      this.closeUponItem()
+      let result = []
+      if (inputData) {
+        if (inputData.charAt(0) === panelSignMap.search) {
+          result = this.getSearchData(inputData)
+          this.currPanel = 'search'
+        } else if (inputData.charAt(0) === panelSignMap.recently) {
+          result = this.getRecentlyData(inputData)
+          this.currPanel = 'recently'
+        } else if (inputData.charAt(0) === panelSignMap.command) {
+          result = this.getCommandData(inputData)
+          this.currPanel = 'command'
+        } else if (inputData.charAt(0) === panelSignMap.help) {
+          result = helpList
+          this.currPanel = 'help'
+        } else {
+          result = this.getNoMatchData()
+          this.currPanel = 'unmatch'
+        }
+      } else {
+        result = helpList
+        this.currPanel = 'help'
+      }
+      cb(result)
+    },
+    getSearchData (inputData) {
+      if (inputData.length === 1) {
+        let caches = takeFromCache(SEARCH_PATH)
+        if (caches && caches.length > 0) {
+          this.showUponItem('Recently Searches')
+        } else {
+          this.showUponItem('Input your word to search')
+        }
+        return caches
+      } else if (inputData.length > 1) {
+        let query = inputData.slice(1).toLowerCase()
+        return this.devData.filter(item => {
+          return item.value.toLowerCase().includes(query)
+        })
+      } else {
+        return []
       }
     },
-    onOpened () {
+    getRecentlyData (inputData) {
+      if (inputData.length >= 1) {
+        let caches = takeFromCache(RECENTLY_PATH)
+        if (caches && caches.length > 0) {
+          this.showUponItem('Recently Actions')
+          if (inputData.length === 1) {
+            return caches
+          } else {
+            let query = inputData.slice(1).toLowerCase()
+            return caches.filter(item => {
+              return item.value.toLowerCase().includes(query)
+            })
+          }
+        } else {
+          this.showUponItem('No recently actions')
+          return []
+        }
+      } else {
+        return []
+      }
     },
-    onClosed () {
-      this.hoveredItem = ''
-      this.updateEvent('[ close ] Has closed.')
+    getCommandData (inputData) {
+      if (inputData.length === 1) {
+        return commandList
+      } else if (inputData.length > 1) {
+        let query = inputData.slice(1).toLowerCase()
+        return commandList.filter(item => {
+          return item.value.toLocaleLowerCase().includes(query)
+        })
+      } else {
+        return []
+      }
+    },
+    getNoMatchData () {
+      return [{ key: 'noMatch', value: 'No results matching' }]
     },
     onSelect (item) {
       this.updateEvent(`[ select ] Has selected, value is ${item.value}`)
       this.selected = item
     },
-    querySearch (query, cb) {
-      if (query) {
-        if (query.charAt(0) === '>') {
-          if (query.length === 1) {
-            this.queryList = commandList
-          } else if (query.length > 1) {
-            this.queryList = commandList.filter(item => {
-              return item.value.toLowerCase().includes(query.slice(1).toLowerCase())
-            })
-          }
-        } else if (query.charAt(0) === '#') {
-          if (query.length === 1) {
-            this.queryList = recentlyList
-          } else if (query.length > 1) {
-            this.queryList = recentlyList.filter(item => {
-              return item.value.toLowerCase().includes(query.slice(1).toLowerCase())
-            })
-          }
-        } else {
-          this.queryList = this.devData.filter(item => {
-            return item.value.toLowerCase().includes(query.toLowerCase())
-          })
-        }
-      } else {
-        this.queryList = this.devData
-      }
-      cb(this.queryList)
+    onOpened () {
     },
-    deleteItem (event, item) {
-      event.stopPropagation()
-      removeFromArray(this.queryList, 'key', item)
-      removeFromArray(this.devData, 'key', item)
-      this.$refs.searchPanel.focusInput()
-    },
-    checkHovered () {
-      if (this.hoveredItem && !isInArray(this.queryList, 'key', { key: this.hoveredItem })) {
-        this.hoveredItem = ''
-      }
+    onClosed () {
+      this.updateEvent('[ close ] Has closed.')
     },
     updateEvent (info) {
       if (this.eventList.length > 300) {
@@ -331,7 +369,7 @@ export default {
 
 .demo-result{
   top: 250px;
-  height: 300px;
+  height: 260px;
   width: 640px;
 }
 .demo-result-item{
@@ -344,10 +382,54 @@ export default {
   color: rgb(8, 202, 144);
 }
 
+.panel-item-help,
+.help-item-wrap,
+.panel-item-unmatch{
+  height: 28px;
+  padding: 0 16px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.help-item-wrap{
+  padding: 0;
+}
+.help-value{
+  color: #a810d6;
+  font-size: 14px;
+  font-weight: 600;
+  width: 20px;
+  margin-right: 8px;
+}
+.help-tip{
+  font-size: 12px;
+  color: #909399;
+}
+.unmatch-value{
+  color: #909399;
+}
+.panel-shortcut{
+  font-size: 11px;
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 4px;
+  border-radius: 4px;
+  background-color: #dadada;
+  color: #303133;
+}
+.panel-upon-item{
+  height: 20px;
+  padding: 0 16px;
+  font-size: 13px;
+  box-sizing: border-box;
+  font-weight: 400;
+  background-color: rgba(255, 187, 120, 0.4);
+  color: #909399;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 .demo-search{
   width: 100%;
 }
-
 .demo-search-item{
   margin: 0;
   height: 32px;
@@ -377,15 +459,6 @@ export default {
 .demo-search-item .iconclose{
   font-size: 14px;
   font-weight: 600;
-}
-
-.close-wrap{
-  height: 100%;
-  width: 18px;
-}
-.close-inner{
-  height: 100%;
-  width: 100%;
 }
 
 .toggle-result-enter-active,

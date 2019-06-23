@@ -17,14 +17,21 @@ export default {
   },
   mounted () {
     document.addEventListener('keydown', event => {
-      if (event && event.keyCode === 68 && event.shiftKey) {
-        this.show({ theme: 'dark' })
-      } else if (event && event.keyCode === 76 && event.shiftKey) {
-        this.show({ theme: 'light' })
+      if (event && event.keyCode === 80 && event.shiftKey) {
+        // Shift + P
+        this.show({ theme: 'light', action: 'help' })
+      } else if (event && event.keyCode === 83 && event.shiftKey) {
+        // Shift + S
+        this.show({ theme: 'light', action: 'search' })
       } else if (event && event.keyCode === 67 && event.shiftKey) {
-        this.show({ theme: 'light', panel: 'command' })
+        // Shift + C
+        this.show({ theme: 'light', action: 'command' })
       } else if (event && event.keyCode === 82 && event.shiftKey) {
-        this.show({ theme: 'light', panel: 'recently' })
+        // Shift + R
+        this.show({ theme: 'light', action: 'recently' })
+      } else if (event && event.keyCode === 68 && event.shiftKey) {
+        // Shift + D
+        this.show({ theme: 'dark', action: 'help' })
       }
     })
   },

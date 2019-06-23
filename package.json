@@ -1,6 +1,6 @@
 {
   "name": "vue-search-panel",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A vue component of searching panel",
   "main": "dist/index.min.js",
   "scripts": {
