@@ -29,6 +29,9 @@ export default {
       } else if (event && event.keyCode === 82 && event.shiftKey) {
         // Shift + R
         this.show({ theme: 'light', action: 'recently' })
+      } else if (event && event.keyCode === 70 && event.shiftKey) {
+        // Shift + F
+        this.show({ theme: 'light', action: 'favorite' })
       } else if (event && event.keyCode === 68 && event.shiftKey) {
         // Shift + D
         this.show({ theme: 'dark', action: 'help' })

@@ -42,3 +42,16 @@ export const isInArray = (arr, propName, target) => {
     return item[propName] === target[propName]
   })
 }
+
+export const truncateText = (str, len, ellipsis = '...') => {
+  if (!(typeof str === 'string' && typeof len === 'number' && typeof ellipsis === 'string' && (len > ellipsis.length))) {
+    throw new Error('Invalid params.')
+  }
+  if (str.length <= len) {
+    return str
+  } else {
+    let contentLen = len - ellipsis.length
+    let content = str.slice(0, contentLen)
+    return content + ellipsis
+  }
+}

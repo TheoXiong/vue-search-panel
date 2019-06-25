@@ -43,6 +43,32 @@
                 <span class="unmatch-value">{{ item.value }}</span>
               </div>
             </div>
+            <div v-else-if="currPanel === 'search'">
+              <div class="panel-item-search flex-c">
+                <span><i class="iconfont icontags"></i></span>
+                <div class="search-value">{{ item.value }}</div>
+                <div class="search-time flex-c-e">{{ item.time }}</div>
+              </div>
+            </div>
+            <div v-else-if="currPanel === 'recently'">
+              <div class="panel-item-recently flex-c">
+                <div class="recently-action">{{ item.action }}</div>
+                <div class="recently-value">{{ item.value }}</div>
+                <div class="recently-time flex-c-e">{{ item.time }}</div>
+              </div>
+            </div>
+            <div v-else-if="currPanel === 'command'">
+              <div class="panel-item-command flex-c">
+                <span class="command-value">{{ item.value }}</span>
+              </div>
+            </div>
+            <div v-else-if="currPanel === 'favorite'">
+              <div class="panel-item-favorite flex-c">
+                <span><i class="iconfont iconlink"></i></span>
+                <span class="favorite-alter">{{ item.alter }}</span>
+                <span class="favorite-value flex-c-e">{{ item.value }}</span>
+              </div>
+            </div>
           </div>
           <div slot="upon-item">
             <div class="panel-upon-item flex-c" v-if="!!isShowUponItem">
@@ -53,16 +79,22 @@
       </div>
       <div class="demo-tip">
         <span class="demo-tip-text">
-          Press <span class="demo-key">Shift+L</span> to open search panel with <span style="color:#eee;font-size:20px;">{{ tip1 }}</span>
+          Press <span class="demo-key">Shift+P</span> to open the help panel
         </span>
         <span class="demo-tip-text">
-          Press <span class="demo-key">Shift+D</span> to open search panel with <span style="color:#111;font-size:20px;">{{ tip2 }}</span>
+          Press <span class="demo-key">Shift+S</span> to open the search panel
         </span>
         <span class="demo-tip-text">
-          Press <span class="demo-key">Shift+C</span> to open command panel
+          Press <span class="demo-key">Shift+R</span> to open the recently panel
         </span>
         <span class="demo-tip-text">
-          Press <span class="demo-key">Shift+R</span> to open recently panel
+          Press <span class="demo-key">Shift+C</span> to open the command panel
+        </span>
+        <span class="demo-tip-text">
+          Press <span class="demo-key">Shift+F</span> to open the favorite panel
+        </span>
+        <span class="demo-tip-text">
+          Press <span class="demo-key">Shift+D</span> to open the panel with <span style="color:#111;font-size:20px;">{{ tip2 }}</span>
         </span>
         <span class="demo-tip-text">
           Press <span class="demo-key">ESC</span> or Click outside to close
@@ -86,9 +118,9 @@
 </template>
 
 <script>
-import { parseTime } from '@/utils/util.js'
-import { panelSignMap, helpList, commandList } from '@/utils/config.js'
-import { takeFromCache, SEARCH_PATH, RECENTLY_PATH } from '@/utils/cache.js'
+import { parseTime, truncateText } from '@/utils/util.js'
+import { panelSignMap, helpList, commandList, favoriteList } from '@/utils/config.js'
+import { takeFromCache, saveToCache, SEARCH_PATH, RECENTLY_PATH } from '@/utils/cache.js'
 import vuescroll from 'vuescroll'
 const cryptoRandomString = require('crypto-random-string')
 
@@ -190,6 +222,7 @@ export default {
       this.$nextTick(() => {
         this.$refs.searchPanel.show()
         this.updateEvent(`[ open ] Has opened, theme is ${info.theme}`)
+        this.saveActionToCache('Open', `the ${info.action} panel`)
       })
     },
     showUponItem (text) {
@@ -213,6 +246,9 @@ export default {
         } else if (inputData.charAt(0) === panelSignMap.command) {
           result = this.getCommandData(inputData)
           this.currPanel = 'command'
+        } else if (inputData.charAt(0) === panelSignMap.favorite) {
+          result = this.getFavoriteData(inputData)
+          this.currPanel = 'favorite'
         } else if (inputData.charAt(0) === panelSignMap.help) {
           result = helpList
           this.currPanel = 'help'
@@ -248,7 +284,7 @@ export default {
       if (inputData.length >= 1) {
         let caches = takeFromCache(RECENTLY_PATH)
         if (caches && caches.length > 0) {
-          this.showUponItem('Recently Actions')
+          this.showUponItem('Recently Events')
           if (inputData.length === 1) {
             return caches
           } else {
@@ -258,7 +294,7 @@ export default {
             })
           }
         } else {
-          this.showUponItem('No recently actions')
+          this.showUponItem('No recently events')
           return []
         }
       } else {
@@ -277,17 +313,79 @@ export default {
         return []
       }
     },
+    getFavoriteData (inputData) {
+      if (inputData.length === 1) {
+        return favoriteList
+      } else if (inputData.length > 1) {
+        let query = inputData.slice(1).toLowerCase()
+        return favoriteList.filter(item => {
+          return item.value.toLocaleLowerCase().includes(query)
+        })
+      } else {
+        return []
+      }
+    },
     getNoMatchData () {
       return [{ key: 'noMatch', value: 'No results matching' }]
     },
     onSelect (item) {
-      this.updateEvent(`[ select ] Has selected, value is ${item.value}`)
-      this.selected = item
+      if (this.currPanel === 'search') {
+        this.handleSearch(item)
+      } else if (this.currPanel === 'recently') {
+        this.handleRecently(item)
+      } else if (this.currPanel === 'command') {
+        this.handleCommand(item)
+      } else if (this.currPanel === 'favorite') {
+        this.handleFavorite(item)
+      }
     },
     onOpened () {
     },
     onClosed () {
       this.updateEvent('[ close ] Has closed.')
+      this.saveActionToCache('Close', 'the panel')
+    },
+    handleSearch (item) {
+      if (item && item.key && item.value) {
+        saveToCache(SEARCH_PATH, item)
+      }
+      this.updateEvent(`[ search ] Has selected, value is ${item.value}`)
+      let tmpVal = truncateText(item.value, 9)
+      this.saveActionToCache('Select', `the searching value (${tmpVal})`)
+    },
+    handleRecently (item) {
+      this.updateEvent(`[ recently ] Has selected, value is ${item.value}`)
+      this.saveActionToCache('Select', 'the recently value')
+    },
+    handleCommand (item) {
+      if (!(item && item.key)) return
+      if (item.key === 'reload-window') {
+        window.location.reload()
+      } else if (item.key === 'go-new') {
+        window.open(window.location.href)
+      } else if (item.key === 'alert-info') {
+        window.alert('some info')
+      }
+      this.updateEvent(`[ command ] Has selected, value is ${item.value}`)
+      this.saveActionToCache('Select', `the command (${item.value})`)
+    },
+    handleFavorite (item) {
+      if (item && item.value) {
+        window.open(item.value)
+        this.updateEvent(`[ favorite ] Has selected, value is ${item.value}`)
+        this.saveActionToCache('Select', `the favorite (${item.value})`)
+      } else {
+        console.error('[ handleFavorite ] invalid value', item)
+      }
+    },
+    saveActionToCache (action, value) {
+      let d = new Date()
+      saveToCache(RECENTLY_PATH, {
+        key: d.getTime(),
+        action: action,
+        value: value,
+        time: parseTime(d)
+      })
     },
     updateEvent (info) {
       if (this.eventList.length > 300) {
@@ -315,7 +413,7 @@ export default {
   overflow: hidden;
 }
 .title{
-  margin: 90px 0 40px;
+  margin: 90px 0 30px;
   padding: 10px 0;
   font-size: 24px;
   color: #303133;
@@ -340,7 +438,7 @@ export default {
 .demo-tip{
   top: 2px;
   width: 640px;
-  height: 200px;
+  height: 240px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -362,14 +460,14 @@ export default {
 }
 
 .demo-divider{
-  top: 210px;
+  top: 240px;
   height: 48px;
   width: 640px;
 }
 
 .demo-result{
-  top: 250px;
-  height: 260px;
+  top: 280px;
+  height: 230px;
   width: 640px;
 }
 .demo-result-item{
@@ -382,10 +480,18 @@ export default {
   color: rgb(8, 202, 144);
 }
 
+.demo-search{
+  width: 100%;
+}
+
 .panel-item-help,
 .help-item-wrap,
-.panel-item-unmatch{
-  height: 28px;
+.panel-item-unmatch,
+.panel-item-search,
+.panel-item-recently,
+.panel-item-command,
+.panel-item-favorite{
+  height: 30px;
   padding: 0 16px;
   font-size: 14px;
   box-sizing: border-box;
@@ -405,7 +511,7 @@ export default {
   font-size: 12px;
   color: #909399;
 }
-.unmatch-value{
+.unmatch-value, .command-value{
   color: #909399;
 }
 .panel-shortcut{
@@ -427,38 +533,51 @@ export default {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-.demo-search{
-  width: 100%;
-}
-.demo-search-item{
-  margin: 0;
-  height: 32px;
-  padding: 0 12px;
-}
-.demo-search-item-value{
+.search-value, .recently-value{
   font-size: 14px;
   flex: 0 0 340px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin-left: 8px;
+  color: #606266;
 }
-.demo-search-item-time{
+.recently-value{
+  margin-left: 0px;
+}
+.search-time, .recently-time{
   font-size: 12px;
   margin: 0 8px 0 16px;
   flex: 1 1 auto;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: #909399;
 }
-
-.demo-search-item .icontags{
+.panel-item-search .icontags,
+.panel-item-favorite .iconlink{
   font-size: 16px;
   color: purple;
 }
-.demo-search-item .iconclose{
+.recently-action{
+  color: purple;
+  width: 50px;
+  margin-right: 10px;
+}
+.favorite-alter{
   font-size: 14px;
-  font-weight: 600;
+  flex: 0 0 200px;
+  color: #606266;
+  margin-left: 8px;
+}
+.favorite-value{
+  font-size: 12px;
+  margin: 0 8px 0 16px;
+  flex: 1 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: #909399;
 }
 
 .toggle-result-enter-active,

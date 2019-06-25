@@ -18,6 +18,10 @@
    - [配置panel位置](#配置panel位置)
    - [扩展功能](#扩展功能)
 - [API](#API)
+   - [属性](#属性)
+   - [方法](#方法)
+   - [事件](#事件)
+   - [插槽](#插槽)
 - [参考](#参考)
 
 ## 特性
@@ -380,7 +384,87 @@ export default {
 
 ### 扩展功能
 
+可扩展为 搜索面板/历史纪录面板/命令面板/收藏面板 等       
+这是一个简单的示例：[https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/)        
+               
+组件内也提供了调试代码，运行方式：
+```
+npm install
+npm run dev
+```
+
 ## API
+
+### 属性
+
+参数 | 说明 | 类型 | 可选值 | 默认值
+-|-|-|-|-|
+value / v-model      | 输入绑定值         | String | — | —
+placeholder          | 输入框占位文本      | String | — | —
+width                | panel的宽度        | String | — | 50%
+height               | panel的高度        | String | — | 300px
+top                  | panel相对顶部偏移量 | String | — | 0px
+bottom               | panel相对底部偏移量 | String | — | 0px
+left                 | panel相对左边偏移量 | String | — | 0px
+right                | panel相对右边偏移量 | String | — | 0px
+fixed                | 是否相对浏览器定位  | Boolean | — | true
+placement            | panel弹出位置（fixed为false时无效）| String | top/bottom/left/right | top
+fetchSuggestions     | 返回输入建议的方法，通过调用 cb(data:[]) 来返回它 | Function(queryString, cb) | — | —
+closeOnPressEscape   | 按下ESC键时是否关闭panel  | Boolean | — | true
+closeOnSelect        | 选择后是否关闭panel  | Boolean | — | true
+clearOnClose         | 关闭后是否清空input  | Boolean | — | true
+selectWhenUnmatched  | 无匹配建议时，按Enter是否触发select | Boolean | — | false
+triggerOnFocus       | 是否在输入框focus时显示建议列表 | Boolean | — | true
+highlightFirstItem   | 是否默认突出显示建议中的第一项 | Boolean | — | true
+valueColor           | 建议项文本颜色（无scoped slot时）| String | — | #606266
+scrollBarColor       | 滚动条颜色 | String | — | #DFDFDF
+scrollBarOpacity     | 滚动条透明度 | Number | — | 0.8
+panelBackground      | panel背景颜色 | String | — | #FFFFFF
+panelBorderRadius    | panel边框圆角 | String | — | 0px
+panelBoxShadow       | panel阴影颜色 | String | — | rgba(0, 0, 0, 0.3)
+highlightedColor     | 建议项突出显示时的背景颜色 | String | — | #F5F7FA
+hoveredColor         | 建议项鼠标悬停时的背景颜色 | String | — | #C5C7CA
+placeholderEffect    | 输入框占位文本颜色 | String | light/dark | light
+inputColor           | 输入框文本颜色 | String | — | #606266
+inputBackground      | 输入框背景颜色 | String | — | #FFFFFF
+inputBorderColor      | 输入框边框颜色 | String | — | #DCDFE6
+inputBorderColorHovering | 输入框鼠标悬停时的边框颜色 | String | — | #B0B3BB
+inputBorderColorFocused  | 输入框focus时的边框颜色 | String | — | #575F96
+
+### 方法
+
+方法名 | 说明 | 参数
+-|-|-|
+show               |  打开panel | —
+close              |  关闭panel | —
+focusInput         |  使input获取焦点 | —
+getInputElement    |  获取input元素 | —
+
+### 事件
+
+事件名 | 说明 | 回调参数
+-|-|-|
+open   | panel打开的回调 | —
+opened | panel打开动画结束时的回调 | —
+close  | panel关闭的回调 | —
+closed | panel关闭动画结束时的回调 | —
+focus  | input获取焦点时的回调 | —
+blur   | input失去焦点时的回调 | —
+select | 点击选中建议项时触发 | —
+
+### 插槽
+
+#### 作用域插槽
+
+自定义输入建议，参数为 { item }     
+参考：[自定义建议项](#自定义建议项)
+
+#### 具名插槽
+
+name | 说明 
+-|-|
+upon-item  |  建议项顶部内容
+
 
 ## 参考
 - VS Code
