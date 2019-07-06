@@ -1,53 +1,53 @@
 # vue-search-panel
 
-English | [简体中文](./README.zh-CN.md)
+简体中文 | [English](./README.md)
 
-[vue-search-panel](https://github.com/TheoXiong/vue-search-panel) is a search component with suggestions
+[vue-search-panel](https://github.com/TheoXiong/vue-search-panel) 是一个带输入建议的搜索组件
 
-## Contents
-- [Features](#Features)
-- [Example](#Example)
-- [Install](#Install)
-- [Usage](#Usage)
+## 目录
+- [特性](#特性)
+- [演示](#演示)
+- [安装](#安装)
+- [使用](#使用)
 - [API](#API)
-- [Reference](#Reference)
+- [参考](#参考)
 
-## Features
-- Filter suggestions based on input word, support for custom rules
-- Customize suggestion's element by slot
-- Support for custom UI
-- Support configuration panel position (top/bottom/left/right/static)
-- Extended to multifunctional panel, like VsCode
+## 特性
+- 可根据输入内容过滤建议项，可自定义过滤规则
+- 可通过slot自定义建议项内容
+- 支持自定义UI, 可灵活配置样式
+- 可配置panel呈现位置，（相对浏览器）top/bottom/left/right 或位于父级元素内部
+- 支持扩展，可扩展为多功能面板，类似VsCode的搜索面板
 
-## Example
+## 演示
 
-### Live demo
+### 线上demo
 链接： [https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/) 
 
-### Default UI
+### 默认UI
 ![DefaultUI](./defaultUI.png)
 
-### Custom UI
+### 自定义UI
 ![CustomizeUI](./customizeUI.png)
 
-## Install
+## 安装
 ``` 
 $   npm install vue-search-panel --save
 ```
 
-## Usage
+## 使用
 
-### Import module
+### 引入模块
 ```
 import VueSearchPanel from 'vue-search-panel'
 ```
 
-### Registration
-#### Global registration
+### 注册
+#### 全局注册
 ```
 Vue.use(VueSearchPanel)
 ```
-#### Local registration
+#### 组件内注册
 ```
 <script>
 export default {
@@ -56,11 +56,10 @@ export default {
 </script>
 ```
 
-### Basic usage
-Calling the `show` method to open panel.            
-Click outside or Press ESC to close panel.   
+### 基础用法
+通过调用组件的`show`方法打开search panel，点击panel外部或按ESC键关闭         
         
-Sample code：
+示例代码：
 ```
 <template>
   <div class="demo-comp">
@@ -108,10 +107,10 @@ export default {
 </script>
 ```
 
-### Custom suggestions
-Customize suggestion's element by `scoped slot`, access the suggestion object via the `item` key.         
+### 自定义建议项
+使用`scoped slot`自定义输入建议的内容，item为当前建议项数据对象          
         
-Sample code：
+示例代码：
 ```
 <template>
   <div class="demo-comp">
@@ -188,12 +187,10 @@ export default {
 </style>
 ```
 
-### Custom UI
-Customize UI by props.                             
-The color/borderColor/backgroundColor/width/height can be configured.             
-For more details, see the [API](#API).                     
+### 自定义UI
+通过props参数自定义UI，可配置颜色、宽度、高度，参数说明可查看[API](#API)文档         
         
-Sample code：
+示例代码：
 ```
 <template>
   <div class="demo-comp">
@@ -283,12 +280,12 @@ export default {
 </style>
 ```
 
-### config panel position
-The prop of `fixed` is used for position of panel, the panel is positioned relative to the viewport when the value is `true`, and the panel is positioned according to the normal flow of the document when the value is `false`.          
-The prop of `placement` is used for specifying the placement of panel relative to the viewport, the optional vlaue is `top/bottom/left/right `                                
-> The placement prop is ignored when the fiexd value is false                    
+### 配置panel位置
+通过`fixed`参数使panel相对于浏览器窗口或父级元素定位
+通过`placement`参数配置panel位于 top/bottom/left/right(相对于浏览器窗口)
+> 当fixed为false时，placement参数无效       
          
-Sample code：         
+示例代码：         
 ```
 <template>
   <div class="demo-comp">
@@ -373,91 +370,91 @@ export default {
 </style>
 ```
 
-### Extension
-It could be extended to multifunctional panel, such as search/recently/command, like VsCode     
-Live dome：[https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/)        
+### 扩展功能
+
+可扩展为 搜索面板/历史纪录面板/命令面板/收藏面板 等       
+这是一个简单的示例：[https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/)        
                
-For dev：
+组件内也提供了调试代码，运行方式：
 ```
 npm install
 npm run dev
 ```
-     
-## API       
 
-### Attributes
+## API
 
-parameter | description | type | optional value | default value
+### 属性
+
+参数 | 说明 | 类型 | 可选值 | 默认值
 -|-|-|-|-|
-value / v-model      | two-way binding value | String | — | —
-placeholder          | the placeholder of input | String | — | —
-width                | the width of panel        | String | — | 50%
-height               | the height of panel        | String | — | 300px
-top                  | the marginTop of panel | String | — | 0px
-bottom               | the marginBottom of panel | String | — | 0px
-left                 | the marginLeft of panel | String | — | 0px
-right                | the marginRight of panel | String | — | 0px
-fixed                | whether positioned relative to the viewport  | Boolean | — | true
-placement            | specifying the placement of panel relative to the viewport (ignored when the fiexd value is false) | String | top/bottom/left/right | top
-fetchSuggestions     | a method to fetch input suggestions. when suggestions are ready, invoke callback(data:[]) to return them | Function(queryString, cb) | — | —
-closeOnPressEscape   | whether close panel on press ESC | Boolean | — | true
-closeOnSelect        | whether close panel on select | Boolean | — | true
-clearOnClose         | whether clear input value when the panel closed | Boolean | — | true
-selectWhenUnmatched  | whether to emit a select event on enter when there is no match | Boolean | — | false
-triggerOnFocus       | whether show suggestions when input focus | Boolean | — | true
-highlightFirstItem   | whether to highlight first item | Boolean | — | true
-valueColor           | the color of suggestion item (when there is no scoped slot) | String | — | #606266
-scrollBarColor       | the color of scroll bar | String | — | #DFDFDF
-scrollBarOpacity     | the opacity of scroll bar | Number | — | 0.8
-panelBackground      | the background color of panel | String | — | #FFFFFF
-panelBorderRadius    | the border radius of panel | String | — | 0px
-panelBoxShadow       | the boxShadow color of panel | String | — | rgba(0, 0, 0, 0.3)
-highlightedColor     | the color of suggestion item when highlighted | String | — | #F5F7FA
-hoveredColor         | the color of suggestion item when hovered | String | — | #C5C7CA
-placeholderEffect    | the color of placeholder text | String | light/dark | light
-inputColor           | the color of input text | String | — | #606266
-inputBackground      | the background color of input field | String | — | #FFFFFF
-inputBorderColor      | the border color of input field | String | — | #DCDFE6
-inputBorderColorHovering | the border color of input field when hovered | String | — | #B0B3BB
-inputBorderColorFocused  | the border color of input field when focused | String | — | #575F96
+value / v-model      | 输入绑定值         | String | — | —
+placeholder          | 输入框占位文本      | String | — | —
+width                | panel的宽度        | String | — | 50%
+height               | panel的高度        | String | — | 300px
+top                  | panel相对顶部偏移量 | String | — | 0px
+bottom               | panel相对底部偏移量 | String | — | 0px
+left                 | panel相对左边偏移量 | String | — | 0px
+right                | panel相对右边偏移量 | String | — | 0px
+fixed                | 是否相对浏览器定位  | Boolean | — | true
+placement            | panel弹出位置（fixed为false时无效）| String | top/bottom/left/right | top
+fetchSuggestions     | 返回输入建议的方法，通过调用 cb(data:[]) 来返回它 | Function(queryString, cb) | — | —
+closeOnPressEscape   | 按下ESC键时是否关闭panel  | Boolean | — | true
+closeOnSelect        | 选择后是否关闭panel  | Boolean | — | true
+clearOnClose         | 关闭后是否清空input  | Boolean | — | true
+selectWhenUnmatched  | 无匹配建议时，按Enter是否触发select | Boolean | — | false
+triggerOnFocus       | 是否在输入框focus时显示建议列表 | Boolean | — | true
+highlightFirstItem   | 是否默认突出显示建议中的第一项 | Boolean | — | true
+valueColor           | 建议项文本颜色（无scoped slot时）| String | — | #606266
+scrollBarColor       | 滚动条颜色 | String | — | #DFDFDF
+scrollBarOpacity     | 滚动条透明度 | Number | — | 0.8
+panelBackground      | panel背景颜色 | String | — | #FFFFFF
+panelBorderRadius    | panel边框圆角 | String | — | 0px
+panelBoxShadow       | panel阴影颜色 | String | — | rgba(0, 0, 0, 0.3)
+highlightedColor     | 建议项突出显示时的背景颜色 | String | — | #F5F7FA
+hoveredColor         | 建议项鼠标悬停时的背景颜色 | String | — | #C5C7CA
+placeholderEffect    | 输入框占位文本颜色 | String | light/dark | light
+inputColor           | 输入框文本颜色 | String | — | #606266
+inputBackground      | 输入框背景颜色 | String | — | #FFFFFF
+inputBorderColor      | 输入框边框颜色 | String | — | #DCDFE6
+inputBorderColorHovering | 输入框鼠标悬停时的边框颜色 | String | — | #B0B3BB
+inputBorderColorFocused  | 输入框focus时的边框颜色 | String | — | #575F96
 
-### Methods
+### 方法
 
-method name | description | parameters
+方法名 | 说明 | 参数
 -|-|-|
-show               |  open the panel | —
-close              |  close the panel | —
-focusInput         |  focus the input element | —
-getInputElement    |  get the input element | —
+show               |  打开panel | —
+close              |  关闭panel | —
+focusInput         |  使input获取焦点 | —
+getInputElement    |  获取input元素 | —
 
-### Events
+### 事件
 
-event name | description | parameters
+事件名 | 说明 | 回调参数
 -|-|-|
-open   | triggers when the panel opens | —
-opened | triggers when the panel opening animation ends | —
-close  | triggers when the panel closes | —
-closed | triggers when the panel closing animation ends | —
-focus  | triggers when the input element focused | —
-blur   | triggers when the input element blurred | —
-select | triggers when a suggestion is clicked | suggestion being clicked
+open   | panel打开的回调 | —
+opened | panel打开动画结束时的回调 | —
+close  | panel关闭的回调 | —
+closed | panel关闭动画结束时的回调 | —
+focus  | input获取焦点时的回调 | —
+blur   | input失去焦点时的回调 | —
+select | 点击选中建议项时触发 | 选中的建议项内容
 
-### Slots
+### 插槽
 
-#### Scoped slot           
-                             
-Custom content for input suggestions, the scope parameter is `{ item } ` 
+#### 作用域插槽
 
-#### Named slot               
-                              
-name | description 
+自定义输入建议，参数为 `{ item }`  
+参考：[自定义建议项](#自定义建议项)
+
+#### 具名插槽
+
+name | 说明 
 -|-|
-upon-item  |  content on the top of suggestions
+upon-item  |  建议项顶部内容
 
 
-## Reference
+## 参考
 - VS Code
 - Element UI
-
-
 
