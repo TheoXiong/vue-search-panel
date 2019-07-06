@@ -22,7 +22,7 @@ English | [简体中文](./README.zh-CN.md)
 ## Example
 
 ### Live demo
-链接： [https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/) 
+Link： [https://theoxiong.github.io/vue-search-panel/](https://theoxiong.github.io/vue-search-panel/) 
 
 ### Default UI
 ![DefaultUI](./defaultUI.png)
@@ -57,8 +57,8 @@ export default {
 ```
 
 ### Basic usage
-Calling the `show` method to open panel.            
-Click outside or Press ESC to close panel.   
+- Calling the `show` method to open panel.            
+- Click outside or Press ESC to close panel.   
         
 Sample code：
 ```
@@ -284,8 +284,8 @@ export default {
 ```
 
 ### config panel position
-The prop of `fixed` is used for position of panel, the panel is positioned relative to the viewport when the value is `true`, and the panel is positioned according to the normal flow of the document when the value is `false`.          
-The prop of `placement` is used for specifying the placement of panel relative to the viewport, the optional vlaue is `top/bottom/left/right `                                
+- The prop of `fixed` is used for position of panel, the panel is positioned relative to the viewport when the value is `true`, and the panel is positioned according to the normal flow of the document when the value is `false`.          
+- The prop of `placement` is used for specifying the placement of panel relative to the viewport, the optional vlaue is `top/bottom/left/right `                                
 > The placement prop is ignored when the fiexd value is false                    
          
 Sample code：         

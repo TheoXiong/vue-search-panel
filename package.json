@@ -1,6 +1,6 @@
 {
   "name": "vue-search-panel",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A vue component of searching panel",
   "main": "dist/index.min.js",
   "scripts": {
@@ -55,7 +55,14 @@
   "keywords": [
     "search",
     "panel",
-    "vue"
+    "vue",
+    "select",
+    "dropdown",
+    "suggestion",
+    "autocomplete",
+    "customizable",
+    "extendable",
+    "vscode"
   ],
   "repository": {
     "type": "git",
